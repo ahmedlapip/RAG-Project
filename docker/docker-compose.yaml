@@ -1,0 +1,2 @@
+# TIP: Create a docker-compose.yaml file to set up your database and vector store services.
+# Make sure to define the necessary services (e.g., MongoDB, Qdrant), ports, volumes, and networks.
