@@ -1,4 +1,7 @@
-"""
-TIP: This is the main entry point of the FastAPI application. 
-Implement the FastAPI app and integrate routers and databases here according to the README.
-"""
+from dotenv import load_dotenv
+load_dotenv('.env')
+from fastapi import FastAPI
+from src.routes import base ,File
+app =FastAPI()
+app.include_router(base.base_router)
+app.include_router(File.base_router)
