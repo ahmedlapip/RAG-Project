@@ -4,6 +4,7 @@ class settings(BaseSettings):
     APP_VERSION:str
     FILE_ALLOWED_TYPES:list
     FILE_MAX_SIZE_MB:int
+    FILE_CHUNK_SIZE:int
     class config :
         env_file=".env"
 def get_settings():
