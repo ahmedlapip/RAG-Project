@@ -1,32 +1,33 @@
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo.errors import ServerSelectionTimeoutError
-import os
+from src.helpers.config import settings
+from .data_chunk import DataChunk
+from .project import Project
 
-MONGO_URL_LOCAL = os.getenv('MONGO_URL_LOCAL')
-DB_NAME = os.getenv('MONGODB_DB_NAME')
 async def db_connection():
+    MONGO_URL_LOCAL = settings.MONGODB_URI_LOCAL
+    DB_NAME = settings.MONGODB_DB_NAME
     global client, db
     try:
         client = AsyncIOMotorClient(
             MONGO_URL_LOCAL,
             serverSelectionTimeoutMS=5000
         )
-
         # Force Connection Check
         await client.server_info()
 
-        db = client[DB_NAME]
-        print("✅ Connected to MongoDB")
+        print("MongoDB Is Connected Successfully ✅✅")
+        return client[DB_NAME]
 
     except ServerSelectionTimeoutError as e:
-        print("❌ MongoDB connection failed (timeout):")
+        print("MongoDB Connection Failed (timeout) ❌❌")
 
     except Exception as e:
-        print("❌ Unexpected MongoDB error:")
+        print("Unexpected MongoDB Error ❌❌")
 
 
 async def close_db_connection():
     global client
     if client:
         client.close()
-        print("🔌 MongoDB connection closed")
+        print("MongoDB Connection Is Closed 🔌🔌")
