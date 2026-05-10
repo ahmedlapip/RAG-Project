@@ -66,7 +66,6 @@ async def find_project(req: Request, project_id: str):
 @project_router.patch('/{_id}', status_code=status.HTTP_200_OK)
 async def update_project(req: Request, _id: str, body: ProjectUpdate):
     try:
-
         update_data = {
             k: v for k, v in body.dict().items()
             if v is not None

@@ -3,7 +3,7 @@ from typing import Optional
 from bson import ObjectId
 
 class ProjectUpdate(BaseModel):
-    project_id: Optional[str] = Field(..., min_length=1)
+    # project_id: Optional[str] = Field(..., min_length=1)
     project_name: Optional[str] = Field(..., min_length=1)
 
 class Project(BaseModel):

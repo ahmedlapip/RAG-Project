@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     MONGODB_URI_LOCAL: str
     MONGODB_DB_NAME: str
     MONGODB_DB_PASSWORD: str
+    MONGODB_URI_DOCKER_IMAGE: str
 
     # VectorDB Configurations
     QDRANT_API_URL: str

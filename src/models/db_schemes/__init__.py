@@ -5,12 +5,14 @@ from .data_chunk import DataChunk
 from .project import Project
 
 async def db_connection():
-    MONGO_URL_LOCAL = settings.MONGODB_URI_LOCAL
+    # MONGO_URL_LOCAL = settings.MONGODB_URI_LOCAL
+    MONGODB_URI_DOCKER_IMAGE = settings.MONGODB_URI_DOCKER_IMAGE
     DB_NAME = settings.MONGODB_DB_NAME
     global client, db
     try:
         client = AsyncIOMotorClient(
-            MONGO_URL_LOCAL,
+            # MONGO_URL_LOCAL,
+            MONGODB_URI_DOCKER_IMAGE,
             serverSelectionTimeoutMS=5000
         )
         # Force Connection Check
