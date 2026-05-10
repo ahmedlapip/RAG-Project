@@ -1,6 +1,8 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
+    class config :
+        env_file=".env"
     # App Details
     APP_NAME:str
     APP_VERSION:str
@@ -8,7 +10,7 @@ class Settings(BaseSettings):
     # Files Details
     FILE_ALLOWED_TYPES:list
     FILE_MAX_SIZE_MB:int
-
+    FILE_CHUNK_SIZE:int
     # Mongo Configurations
     MONGODB_URI_LOCAL: str
     MONGODB_DB_NAME: str
@@ -36,5 +38,6 @@ class Settings(BaseSettings):
         env_file=".env",
         extra="allow"
     )
-
 settings = Settings()
+def get_settings():
+    return settings()

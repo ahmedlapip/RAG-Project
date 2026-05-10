@@ -23,4 +23,3 @@ async def Upload(Proj_ID:str, file:UploadFile):
             status_code= status.HTTP_200_OK,
             content= message
         )
-

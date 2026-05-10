@@ -1,4 +1,6 @@
 from dotenv import load_dotenv
+
+from src.routes import file
 load_dotenv('.env')
 from pathlib import Path
 from src.models.db_schemes import db_connection, close_db_connection
@@ -32,3 +34,5 @@ async def close_server():
     print('Server Is Closed Successfully ☠️ ☠️')
     print('QDrant Is Closed Successfully ☠️ ☠️')
     await close_db_connection()
+
+
