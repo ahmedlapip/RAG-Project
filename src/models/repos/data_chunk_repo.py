@@ -9,9 +9,9 @@ class DataChunkRepository(BaseDataRepository):
         self.collection = self.db_client[DatabaseEnum.CHUNK_COLLECTION_NAME.value]
 
     async def create_one(self, data_chunk: DataChunk):
-        return await self.collection.insertOne(data_chunk.model_dump(by_alias=True))
+        return await self.collection.insert_one(data_chunk.model_dump(by_alias=True))
 
-    async def create_many(self, chunks: list[DataChunk], batch_size: int=100):
+    async def create_many(self, chunks: list[DataChunk], batch_size: int=10000):
         for i in range(0, len(chunks), batch_size):
             batch_end = i + batch_size
             batch = chunks[i:batch_end]

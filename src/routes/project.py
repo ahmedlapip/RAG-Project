@@ -55,11 +55,11 @@ async def find_project(req: Request, project_id: str):
         # result["_id"] = str(result["_id"])
         return result
     except Exception as e:
-        print(e)
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
             content={
-                "Message": "Internal Server Error"
+                "Message": "Internal Server Error",
+                "error": "7787878nbnbn"
             }
         )
 

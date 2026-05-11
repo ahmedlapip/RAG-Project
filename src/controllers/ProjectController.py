@@ -19,7 +19,8 @@ class ProjectController(BaseController):
 
     async def find_project(self, req: Request, project_id: str):
         project_repo = ProjectRepository(req.app.db_client)
-        return await project_repo.find_one_by_id(project_id)
+        #return await project_repo.find_one_by_id(project_id)
+        return await project_repo.find_one_by_project_id(project_id)
 
     async def update_project(self, req: Request, project_id: str, update_data: Project):
         project_repo = ProjectRepository(req.app.db_client)

@@ -26,7 +26,19 @@ class ProjectRepository(BaseDataRepository):
         project = Project(**result)
         project.id = id
         return project.model_dump(by_alias=True)
+    async def find_one_by_project_id(self, project_id: str):
+        result = await self.collection.find_one(
+            { "project_id": project_id }
+        )
 
+        if result is None:
+            return None
+        result["_id"] = str(result["_id"])
+        id = result["_id"]
+        project = Project(**result)
+        project.id = id
+        return project.model_dump(by_alias=True)
+    
     async def delete_one_by_id(self, project_id: str):
         return await self.collection.delete_one(
             { "_id": ObjectId(project_id) }
