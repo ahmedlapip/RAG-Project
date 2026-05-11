@@ -52,3 +52,35 @@ class DataChunkRepository(BaseDataRepository):
 
     async def update_many(self, data):
         pass
+
+    async def get_project_chunks(
+        self,
+        project_id: str,
+        page: int = 1,
+        limit: int = 100,
+    ):
+        skip = (page - 1) * limit
+
+        cursor = (
+            self.collection.find({"chunk_project_id": ObjectId(project_id)})
+            .skip(skip)
+            .limit(limit)
+        )
+
+        chunks = []
+        async for document in cursor:
+            document["_id"] = str(document["_id"])
+            document["chunk_project_id"] = str(document["chunk_project_id"])
+            chunks.append(document)
+
+        total = await self.collection.count_documents(
+            {"chunk_project_id": ObjectId(project_id)}
+        )
+
+        return {
+            "chunks": chunks,
+            "total": total,
+            "page": page,
+            "limit": limit,
+            "total_pages": (total + limit - 1) // limit,
+        }
