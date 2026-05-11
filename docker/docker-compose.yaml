@@ -1,2 +1,53 @@
-# TIP: Create a docker-compose.yaml file to set up your database and vector store services.
-# Make sure to define the necessary services (e.g., MongoDB, Qdrant), ports, volumes, and networks.
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: fastapi_app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongo
+      - qdrant
+    environment:
+      - MONGO_URL=mongodb://mongo:27017
+      - DB_NAME=mini_rag_db
+    networks:
+      - backend
+
+  mongo:
+    image: mongo:8.3.1-noble
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - backend
+    restart: always
+
+  qdrant:
+    image: qdrant/qdrant
+
+    container_name: qdrant_db
+
+    ports:
+      - "6333:6333"
+
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+    networks:
+      - backend
+
+    restart: always
+
+
+networks:
+  backend:
+
+volumes:
+  mongo_data:
+  qdrant_data:
