@@ -4,6 +4,7 @@ from fastapi import UploadFile
 from src.models import ResponseSignal
 from src.helpers.config import get_settings
 import aiofiles
+import os
 class DataController(BaseController):
     def __init__(self):
         super().__init__()
@@ -22,5 +23,5 @@ class DataController(BaseController):
                 hasher.update(chunk)
         full_hash = hasher.hexdigest()
         short_hash = full_hash[:length]
-        ext = os.path.splitext(filepath)[1]
+        ext = os.path.splitext(filepath)[-1]
         return f"{short_hash}{ext}"

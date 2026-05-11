@@ -21,7 +21,11 @@ class ProjectController(BaseController):
         project_repo = ProjectRepository(req.app.db_client)
         #return await project_repo.find_one_by_id(project_id)
         return await project_repo.find_one_by_project_id(project_id)
-
+    
+    async def find_all_projects(self, req: Request, page=1, page_size: int=5):
+        project_repo = ProjectRepository(req.app.db_client)
+        return await project_repo.find_all_pagination(page, page_size)
+    
     async def update_project(self, req: Request, project_id: str, update_data: Project):
         project_repo = ProjectRepository(req.app.db_client)
         return await project_repo.update_one_by_id(project_id, update_data)
