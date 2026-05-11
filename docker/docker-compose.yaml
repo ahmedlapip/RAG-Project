@@ -16,6 +16,19 @@ services:
       - DB_NAME=mini_rag_db
     networks:
       - backend
+  frontend:
+    build:
+      context: ../UI      
+      dockerfile: Dockerfile
+    container_name: streamlit_app
+    ports:
+      - "8501:8501"
+    depends_on:
+      - api                      
+    environment:
+      - API_URL=http://api:8000  
+    networks:
+      - backend                 
 
   mongo:
     image: mongo:8.3.1-noble
@@ -30,20 +43,14 @@ services:
 
   qdrant:
     image: qdrant/qdrant
-
     container_name: qdrant_db
-
     ports:
       - "6333:6333"
-
     volumes:
       - qdrant_data:/qdrant/storage
-
     networks:
       - backend
-
     restart: always
-
 
 networks:
   backend:

@@ -7,14 +7,14 @@ from src.stores.vectordb.provider.QdrantDB_provider import QDrantProvider
 from src.stores.vectordb.vectorDBProviderFactory import VectorDBProviderFactory
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
-from src.routes import file, project
+from src.routes import file, project, user
 
 app = FastAPI(
     title="RAG API", description="Retrieval-Augmented Generation API", version="1.0.0"
 )
 app.include_router(project.project_router)
 app.include_router(file.base_router)
-
+app.include_router(user.router)
 
 @app.on_event("startup")
 async def start_server():
