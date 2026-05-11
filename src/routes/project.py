@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Request, status
 from fastapi.responses import JSONResponse
 from ..models.db_schemes import Project
-from ..models.db_schemes.project import ProjectUpdate
+from ..models.db_schemes.project import ProjectUpdate, ProjectId
 from ..models.repos.project_repo import ProjectRepository
+from ..models.repos.data_chunk_repo import DataChunkRepository, DataChunk
 from ..controllers.ProjectController import ProjectController
 
 projectController = ProjectController()
@@ -40,11 +41,11 @@ async def create_project(req: Request, project: Project):
             }
         )
 
-@project_router.get('/all', status_code=status.HTTP_200_OK)
+@project_router.get('/', status_code=status.HTTP_200_OK)
 async def find_all_projects(req: Request, page: int, limit: int):
     try:
-        result, total_pages = await projectController.find_all_projects(page, limit)
-        if (result is None | total_pages == 0):
+        result, total_pages = await projectController.find_all_projects(req, page, limit)
+        if (result is None or total_pages == 0):
             return JSONResponse(
                 status_code=status.HTTP_404_NOT_FOUND,
                 content={
@@ -59,13 +60,14 @@ async def find_all_projects(req: Request, page: int, limit: int):
         }
 
     except Exception as e:
+        print(e)
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
             content={
                 "Message": "Internal Server Error"
             }
         )    
-    
+
 @project_router.get('/{project_id}', status_code=status.HTTP_200_OK)
 async def find_project(req: Request, project_id: str):
     try:
@@ -142,3 +144,29 @@ async def delete_project(req: Request, project_id: str):
             }
         )
     
+
+# @project_router.get('/chunk/get_chunks_by_id', status_code=status.HTTP_200_OK)
+# async def find_chunks(req: Request, body: ProjectId, page: int, limit: int):
+#     try:
+#         chunkRepo = DataChunkRepository(req.app.db_client)
+#         result, total_pages = await chunkRepo.find_chunks_by_id_pagination(body.project_id, page, limit)
+#         if not result:
+#             return JSONResponse(
+#                 status_code=status.HTTP_404_NOT_FOUND,
+#                 content={
+#                     "message": "No Projects Found"
+#                 }
+#             )
+
+#         return {
+#             "message": "Projects Found!",
+#             "Total_Pages": total_pages,
+#             "Projects": result,
+#         }
+#     except Exception as e:
+#         return JSONResponse(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             content={
+#                 "Message": "Internal Server Error",
+#             }
+#         )

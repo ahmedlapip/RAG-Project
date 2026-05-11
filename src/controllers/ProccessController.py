@@ -30,11 +30,12 @@ class ProcessController(BaseController):
             return loader.load() 
         print("C"*80)
         return None
-    async def insert_chunks(self,request:Request,body:list[DataChunk]):
-        data_chunk_repo=DataChunkRepository(request.app.db_client)
-        return await data_chunk_repo.create_many(body)
 
-    def process_file_content(self,chunk_size:int,overlap:int,file_content:list):
+    async def insert_chunks(self,request:Request, body:list[DataChunk], project_id: str):
+        data_chunk_repo = await DataChunkRepository.create_instance(request.app.db_client)
+        return await data_chunk_repo.create_many(body, project_id)
+
+    def process_file_content(self, chunk_size:int,overlap:int,file_content:list):
         text_splitter = RecursiveCharacterTextSplitter(
                         chunk_size=chunk_size,
                         chunk_overlap=overlap,
@@ -44,5 +45,4 @@ class ProcessController(BaseController):
         file_contents=[rec.page_content for rec in file_content]
         file_metas=[rec.metadata for rec in file_content]
         chunks=text_splitter.create_documents(file_contents,metadatas=file_metas)
-        
         return chunks
