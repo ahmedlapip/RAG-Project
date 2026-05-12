@@ -46,10 +46,10 @@ def login():
                 response = requests.post(login_url, params=query_params)
                 if response.status_code == 200:
                     user_data = response.json().get("user")
-                    
                     st.success(f"Login successful Welcome {user_name}")
                     st.session_state.logged_in = True
-                    st.session_state.user_info = {"name": user_name}
+                    st.session_state.user_info = {"name": user_name
+                                                  ,"related_projects":user_data['related_projects']}
                     return user_data
                     
                 else:

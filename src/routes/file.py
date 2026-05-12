@@ -9,6 +9,7 @@ from src.models import ResponseSignal
 from .schema.file import ProccessRequest
 from fastapi import Request
 from ..models.repos.data_chunk_repo import DataChunkRepository
+from ..models.repos.project_repo import ProjectRepository
 
 base_router = APIRouter(prefix="/api/v1/data", tags=["data"])
 logger = logging.getLogger("uvicorn.error")
@@ -16,6 +17,7 @@ logger = logging.getLogger("uvicorn.error")
 
 @base_router.post("/upload/{Proj_ID}")
 async def Upload(
+    Req: Request,
     proj_ID: str, file: UploadFile, sett: Settings = Depends(get_settings)
 ):
     controllerUp = DataController()
@@ -32,6 +34,9 @@ async def Upload(
             hash_name = await controllerUp.get_truncated_hash_filename(file_path)
             final_path = os.path.join(project_dir, hash_name)
             os.rename(file_path, final_path)
+            proj_repo = ProjectRepository(Req.app.db_client)
+            name=os.path.splitext(file.filename)[0]
+            await proj_repo.find_or_create_project(proj_ID,name)
 
             return JSONResponse(
                 status_code=status.HTTP_200_OK,
