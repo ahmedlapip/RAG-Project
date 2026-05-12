@@ -7,7 +7,7 @@ class CohereProvider(LLMFactoryInterface):
     def __init__(
         self,
         api_key: str,
-        input_max_chars: int = 1000,
+        input_max_chars: int = 16000,
         max_tokens: int = 1000,
         temperature: float = 0.1,
     ):
@@ -15,6 +15,7 @@ class CohereProvider(LLMFactoryInterface):
         self.input_max_chars = input_max_chars
         self.max_tokens = max_tokens
         self.temperature = temperature
+        self.system_prompt = None
 
         self.gen_model_id = None
         self.embedding_model_id = None
@@ -38,6 +39,7 @@ class CohereProvider(LLMFactoryInterface):
         max_output_token: int = None,
         temperature: float = None,
         chat_history: list = None,
+        system_prompt: str = None,
     ):
         if chat_history is None:
             chat_history = []
@@ -60,6 +62,7 @@ class CohereProvider(LLMFactoryInterface):
             chat_history=messages[:-1] if len(messages) > 1 else [],
             temperature=temperature,
             max_tokens=max_output_token,
+            preamble=system_prompt,
         )
 
         if not response or not response.text:

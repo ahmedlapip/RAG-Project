@@ -18,6 +18,7 @@ class LLMFactoryInterface(ABC):
         max_output_token: int = None,
         temperature: float = None,
         chat_history: list = None,
+        system_prompt: str = None,
     ):
         pass
 

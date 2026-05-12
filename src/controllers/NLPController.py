@@ -194,15 +194,17 @@ class NLPController(BaseController):
         )
 
         if not results or len(results) == 0:
-            apology_prompt = (
-                "You are a helpful AI assistant. The user asked: '"
-                + question
-                + "'. Apologize and explain that no relevant information was found in the available documents to answer their question. Be polite and suggest they may need to add more documents or vectorize the project first."
+            system_prompt = "You are a helpful AI assistant. Be polite and helpful."
+            user_prompt = (
+                f"The user asked: '{question}'. "
+                "Apologize and explain that no relevant information was found in the available documents to answer their question. "
+                "Suggest they may need to add more documents or vectorize the project first."
             )
             answer = gen_llm.generate_text(
-                prompt=apology_prompt,
+                prompt=user_prompt,
                 max_output_token=max_output_token,
                 temperature=temperature,
+                system_prompt=system_prompt,
             )
             return {
                 "success": True,
@@ -224,32 +226,32 @@ class NLPController(BaseController):
                 {"text": text, "metadata": metadata, "score": score, "rank": idx + 1}
             )
 
-            context_parts.append(f"[Document {idx + 1}]: {text}")
+            context_parts.append(f"[Document {idx + 1}]:\n{text}")
 
         context = "\n\n".join(context_parts)
 
-        augmented_prompt = f"""You are a helpful AI assistant specialized in answering questions based on provided documents.
+        system_prompt = """You are a helpful AI assistant specialized in answering questions based on provided documents.
+                        Your instructions:
+                        1. Answer ONLY based on the context provided below
+                        2. If the answer cannot be found in the context, clearly state that you don't have enough information
+                        3. Be specific and reference relevant details from the context
+                        4. If there are multiple relevant pieces of information, provide a comprehensive answer
+                        5. Always be polite and helpful"""
 
-                            Your instructions:
-                            1. Answer ONLY based on the context provided below
-                            2. If the answer cannot be found in the context, clearly state that you don't have enough information
-                            3. Be specific and reference relevant details from the context
-                            4. If there are multiple relevant pieces of information, provide a comprehensive answer
-                            5. Always be polite and helpful
+        user_prompt = f"""Context from documents:
+                    ---
+                    {context}
+                    ---
 
-                            Context from documents:
-                            ---
-                            {context}
-                            ---
+                    User Question: {question}
 
-                            User Question: {question}
-
-                            Your Answer:"""
+                    Your Answer:"""
 
         generated_answer = gen_llm.generate_text(
-            prompt=augmented_prompt,
+            prompt=user_prompt,
             max_output_token=max_output_token,
             temperature=temperature,
+            system_prompt=system_prompt,
         )
 
         return {

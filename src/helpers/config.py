@@ -2,9 +2,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    class config:
-        env_file = ".env"
-
     # App Details
     APP_NAME: str
     APP_VERSION: str
@@ -37,6 +34,11 @@ class Settings(BaseSettings):
 
     # Cohere API configuration
     COHERE_API_KEY: str = ""
+
+    # Ollama API configuration
+    OLLAMA_API_URL: str = "http://localhost:11434"
+    OLLAMA_GENERATION_MODEL: str = "qwen2.5:3b"
+    OLLAMA_EMBEDDING_MODEL: str = "nomic-embed-text"
 
     MAX_CHARACTERS: int = 2048
     MAX_TOKENS: int = 250

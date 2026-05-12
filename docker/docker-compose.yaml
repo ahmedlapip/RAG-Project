@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   api:
     build:
@@ -13,6 +11,10 @@ services:
       - qdrant
     env_file:
       - ../.env
+    environment:
+      - OLLAMA_API_URL=http://host.docker.internal:11434
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - backend
   frontend:

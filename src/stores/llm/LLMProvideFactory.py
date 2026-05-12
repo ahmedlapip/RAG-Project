@@ -2,6 +2,7 @@ from src.helpers.config import get_settings
 from .LLMEnums import LLMEnums
 from .provider.open_ai_provider import OpenAIProvider
 from .provider.cohere_provider import CohereProvider
+from .provider.ollama_provider import OllamaProvider
 
 
 class LLMProviderFactory:
@@ -25,6 +26,16 @@ class LLMProviderFactory:
         if provider == LLMEnums.COHERE.value or provider == "Cohere":
             return CohereProvider(
                 api_key=self.settings.COHERE_API_KEY,
+                input_max_chars=self.settings.MAX_CHARACTERS,
+                max_tokens=self.settings.MAX_TOKENS,
+                temperature=self.settings.TEMPERATURE,
+            )
+
+        if provider == LLMEnums.OLLAMA.value or provider == "Ollama":
+            return OllamaProvider(
+                api_url=self.settings.OLLAMA_API_URL,
+                generation_model=self.settings.OLLAMA_GENERATION_MODEL,
+                embedding_model=self.settings.OLLAMA_EMBEDDING_MODEL,
                 input_max_chars=self.settings.MAX_CHARACTERS,
                 max_tokens=self.settings.MAX_TOKENS,
                 temperature=self.settings.TEMPERATURE,
