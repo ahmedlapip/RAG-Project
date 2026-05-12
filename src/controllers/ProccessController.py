@@ -8,6 +8,7 @@ from ..models.repos.data_chunk_repo import DataChunkRepository
 from fastapi import Request
 from ..models.db_schemes import DataChunk
 from bson import ObjectId
+from langchain_core.documents.base import Document
 
 
 class ProcessController(BaseController):
@@ -55,7 +56,7 @@ class ProcessController(BaseController):
         return chunks
 
     def prepare_chunks_for_db(self, chunks: list, project_id: str) -> list[DataChunk]:
-        from langchain_core.documents.base import Document
+
 
         data_chunks = []
         for idx, chunk in enumerate(chunks):

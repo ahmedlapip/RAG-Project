@@ -18,18 +18,18 @@ async def db_connection():
         # Force Connection Check
         await client.server_info()
 
-        print("MongoDB Is Connected Successfully ✅✅")
+        print("MongoDB Is Connected Successfully")
         return client[DB_NAME]
 
     except ServerSelectionTimeoutError as e:
-        print("MongoDB Connection Failed (timeout) ❌❌")
+        print("MongoDB Connection Failed (timeout)")
 
     except Exception as e:
-        print("Unexpected MongoDB Error ❌❌")
+        print("Unexpected MongoDB Error")
 
 
 async def close_db_connection():
     global client
     if client:
         client.close()
-        print("MongoDB Connection Is Closed 🔌🔌")
+        print("MongoDB Connection Is Closed")

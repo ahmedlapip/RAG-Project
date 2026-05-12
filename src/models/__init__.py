@@ -1,2 +1,3 @@
 from .enums.ResponseEnum import ResponseSignal
-from .enums.FileExtEnums import ProccessExt
+
+__all__ = ["ResponseSignal"]

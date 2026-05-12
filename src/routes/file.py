@@ -92,3 +92,30 @@ async def process_file(
     chunks_to_save = p_cont.prepare_chunks_for_db(file_chunks, mongo_project_id)
     inserted_count = await p_cont.insert_chunks(request, chunks_to_save)
     return {"chunks_count": inserted_count, "message": "Chunks saved successfully"}
+
+
+@base_router.get("/chunks/{project_id}")
+async def get_project_chunks(
+    request: Request,
+    project_id: str,
+    page: int = 1,
+    limit: int = 100,
+):
+    prj_cont = ProjectController()
+    project_obj = await prj_cont.find_project(request, project_id)
+    if not project_obj:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={"message": "Project not found"},
+        )
+
+    mongo_project_id = project_obj["_id"]
+    data_chunk_repo = DataChunkRepository(request.app.db_client)
+
+    result = await data_chunk_repo.get_project_chunks(
+        project_id=mongo_project_id, page=page, limit=limit
+    )
+
+    return result
+
+    return result

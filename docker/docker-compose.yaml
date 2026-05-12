@@ -11,9 +11,8 @@ services:
     depends_on:
       - mongo
       - qdrant
-    environment:
-      - MONGO_URL=mongodb://mongo:27017
-      - DB_NAME=mini_rag_db
+    env_file:
+      - ../.env
     networks:
       - backend
   frontend:
