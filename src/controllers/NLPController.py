@@ -1,3 +1,4 @@
+from typing import Optional
 from .BaseController import BaseController
 from ..models.repos.data_chunk_repo import DataChunkRepository
 from ..models.repos.project_repo import ProjectRepository
@@ -14,6 +15,9 @@ class NLPController(BaseController):
         if self.llm_provider is None:
             self.llm_provider = get_llm_provider()
         return self.llm_provider
+
+    def _get_embeddings_provider(self):
+        return self._get_llm_provider()
 
     async def _get_project_mongo_id(self, request, project_id: str):
         project_repo = ProjectRepository(request.app.db_client)
@@ -145,4 +149,114 @@ class NLPController(BaseController):
             "query": query_text,
             "results": similar_docs,
             "results_count": len(similar_docs),
+        }
+
+    async def answer_user_question(
+        self,
+        request,
+        project_id: str,
+        question: str,
+        limit: int = 5,
+        max_output_token: Optional[int] = None,
+        temperature: Optional[float] = None,
+    ):
+        project_mongo_id = await self._get_project_mongo_id(request, project_id)
+        if not project_mongo_id:
+            return {"success": False, "message": "Project not found"}
+
+        collection_name = f"project_{project_id}"
+
+        qdrant_provider = QDrantProvider(
+            db_path=request.app.state.settings.VECTOR_DB_PATH,
+            distance_method=request.app.state.settings.VECTOR_DISTANCE_METRIC,
+        )
+        await qdrant_provider.vectorDB_connection()
+
+        if not qdrant_provider.is_collection_exists(collection_name):
+            return {
+                "success": False,
+                "message": "Collection does not exist - please vectorize the project first",
+            }
+
+        gen_llm = self._get_llm_provider()
+        gen_llm.set_model(request.app.state.settings.GENERATION_MODEL)
+
+        emb_llm = self._get_embeddings_provider()
+        emb_llm.set_embedding_model(
+            request.app.state.settings.EMBEDDING_MODEL,
+            request.app.state.settings.EMBEDDING_MODEL_SIZE,
+        )
+
+        query_vector = emb_llm.embed_text(question, embedding_type="query")
+
+        results = qdrant_provider.search_by_vector(
+            collection_name=collection_name, vector=query_vector, limit=limit
+        )
+
+        if not results or len(results) == 0:
+            apology_prompt = (
+                "You are a helpful AI assistant. The user asked: '"
+                + question
+                + "'. Apologize and explain that no relevant information was found in the available documents to answer their question. Be polite and suggest they may need to add more documents or vectorize the project first."
+            )
+            answer = gen_llm.generate_text(
+                prompt=apology_prompt,
+                max_output_token=max_output_token,
+                temperature=temperature,
+            )
+            return {
+                "success": True,
+                "question": question,
+                "answer": answer,
+                "sources": [],
+                "sources_count": 0,
+            }
+
+        retrieved_documents = []
+        context_parts = []
+
+        for idx, result in enumerate(results):
+            text = result.payload.get("text", "")
+            metadata = result.payload.get("metadata", {})
+            score = result.score
+
+            retrieved_documents.append(
+                {"text": text, "metadata": metadata, "score": score, "rank": idx + 1}
+            )
+
+            context_parts.append(f"[Document {idx + 1}]: {text}")
+
+        context = "\n\n".join(context_parts)
+
+        augmented_prompt = f"""You are a helpful AI assistant specialized in answering questions based on provided documents.
+
+                            Your instructions:
+                            1. Answer ONLY based on the context provided below
+                            2. If the answer cannot be found in the context, clearly state that you don't have enough information
+                            3. Be specific and reference relevant details from the context
+                            4. If there are multiple relevant pieces of information, provide a comprehensive answer
+                            5. Always be polite and helpful
+
+                            Context from documents:
+                            ---
+                            {context}
+                            ---
+
+                            User Question: {question}
+
+                            Your Answer:"""
+
+        generated_answer = gen_llm.generate_text(
+            prompt=augmented_prompt,
+            max_output_token=max_output_token,
+            temperature=temperature,
+        )
+
+        return {
+            "success": True,
+            "question": question,
+            "answer": generated_answer,
+            "sources": retrieved_documents,
+            "sources_count": len(retrieved_documents),
+            "collection_name": collection_name,
         }
