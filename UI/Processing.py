@@ -2,22 +2,23 @@ import os
 import requests
 import streamlit as st
 import json
+
 API_BASE_URL = os.getenv("API_URL", "http://api:8000")
 
-def upload_and_process_ui(proj_id: str,user_name):
-    def update_projects(proj_id: str, user_name: str,file_name):
+
+def upload_and_process_ui(proj_id: str, user_name):
+    def update_projects(proj_id: str, user_name: str, file_name):
         try:
             update_url = f"{API_BASE_URL}/users/{user_name}/projects"
-            payload = {
-                "project_id": proj_id,
-                "file_name":file_name
-            }
+            payload = {"project_id": proj_id, "file_name": file_name}
             response = requests.post(update_url, json=payload)
             if response.status_code == 200:
                 st.success("User's related projects updated successfully!")
                 return True
             else:
-                st.error(f"Failed to update user's projects: {response.status_code} - {response.text}")
+                st.error(
+                    f"Failed to update user's projects: {response.status_code} - {response.text}"
+                )
                 return False
         except requests.exceptions.ConnectionError as e:
             st.error(f"Connection Error during updating user's projects: {e}")
@@ -35,8 +36,10 @@ def upload_and_process_ui(proj_id: str,user_name):
             chunk_size = st.number_input("Chunk Size", value=512, step=64)
         with col2:
             overlap_size = st.number_input("Overlap Size", value=200, step=10)
-        
-        do_reset_check = st.checkbox("Reset Vector Database for this project?", value=False)
+
+        do_reset_check = st.checkbox(
+            "Reset Vector Database for this project?", value=False
+        )
         do_reset = 1 if do_reset_check else 0
     if st.button("Upload & Process"):
         if not uploaded_file:
@@ -51,14 +54,16 @@ def upload_and_process_ui(proj_id: str,user_name):
         with st.spinner("Uploading document..."):
             try:
                 upload_response = requests.post(upload_url, files=files)
-                
+
                 if upload_response.status_code != 200:
-                    st.error(f"Upload Failed: {upload_response.status_code} - {upload_response.text}")
+                    st.error(
+                        f"Upload Failed: {upload_response.status_code} - {upload_response.text}"
+                    )
                     return
                 upload_data = upload_response.json()
                 saved_file_name = upload_response.json().get("File Name")
                 st.toast("File uploaded! Starting processing...")
-                
+
             except requests.exceptions.ConnectionError as e:
                 st.error(f"Connection Error during upload: {e}")
                 return
@@ -66,38 +71,72 @@ def upload_and_process_ui(proj_id: str,user_name):
                 st.error(f"Unexpected error during upload: {str(e)}")
                 return
 
+        original_file_name = uploaded_file.name
         process_url = f"{API_BASE_URL}/api/v1/data/process/{proj_id}"
         process_payload = {
             "file_name": saved_file_name,
             "chunk_size": chunk_size,
             "overlap_size": overlap_size,
-            "do_reset": do_reset
+            "do_reset": do_reset,
         }
-        update_projects(proj_id, user_name, saved_file_name)
-        
-        with st.spinner("Processing & Vectorizing (This might take a few moments)..."):
+        update_projects(proj_id, user_name, os.path.splitext(original_file_name)[0])
+
+        with st.spinner("Processing document..."):
             try:
                 process_response = requests.post(process_url, json=process_payload)
-                
-                if process_response.status_code == 200:
-                    st.success("Document successfully uploaded and processed!")
-                    with st.expander("View Server Response"):
-                        st.json(process_response.json())
-                else:
-                    st.error(f"Processing Failed: {process_response.status_code} - {process_response.text}")
-                    
+
+                if process_response.status_code != 200:
+                    st.error(
+                        f"Processing Failed: {process_response.status_code} - {process_response.text}"
+                    )
+                    return
+                st.toast("Document processed! Now vectorizing...")
             except requests.exceptions.ConnectionError as e:
                 st.error(f"Connection Error during processing: {e}")
+                return
             except Exception as e:
                 st.error(f"Unexpected error during processing: {str(e)}")
+                return
+
+        vectorize_url = f"{API_BASE_URL}/api/v1/nlp/vectorize/{proj_id}"
+        vectorize_payload = {"do_reset": bool(do_reset)}
+
+        with st.spinner("Vectorizing chunks (This might take a few moments)..."):
+            try:
+                vectorize_response = requests.post(
+                    vectorize_url, json=vectorize_payload
+                )
+
+                if vectorize_response.status_code == 200:
+                    st.success(
+                        "Document successfully uploaded, processed, and vectorized!"
+                    )
+                    with st.expander("View Server Response"):
+                        st.json(vectorize_response.json())
+                else:
+                    st.error(
+                        f"Vectorization Failed: {vectorize_response.status_code} - {vectorize_response.text}"
+                    )
+
+            except requests.exceptions.ConnectionError as e:
+                st.error(f"Connection Error during vectorization: {e}")
+            except Exception as e:
+                st.error(f"Unexpected error during vectorization: {str(e)}")
 
 
-def find_user_projects(prj_ids:list[str]):
-        update_url = f"{API_BASE_URL}/user/specific"  
-        response =  requests.post(update_url, json=prj_ids)
-        st.sidebar.subheader("Your Projects")
+def find_user_projects(prj_ids: list[str]):
+    if not prj_ids:
+        return {"Projects": []}
+
+    try:
+        update_url = f"{API_BASE_URL}/user/specific"
+        response = requests.post(update_url, json=prj_ids, timeout=10)
+
+        if response.status_code != 200:
+            return {"Projects": []}
+
         obj = response.json()
-        for project in obj['Projects']:
-            st.sidebar.write(f"- {project['project_name']} (ID: {project['project_id']})")
         return obj
-    
+
+    except:
+        return {"Projects": []}
