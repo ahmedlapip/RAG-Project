@@ -14,6 +14,21 @@ class ProjectRepository(BaseDataRepository):
     async def create_many(self, projects: list[Project]):
         pass
 
+    async def find_or_create_project(self, project_id: str,name:str):
+        record = await self.collection.find_one({
+            "project_id": project_id
+        })
+
+        if record is None:
+            project = Project(project_id=project_id, project_name=name)
+            project = await self.create_one(project=project)
+            return project
+
+        record["_id"] = str(record["_id"])
+        id = record["_id"]
+        project = Project(**record)
+        project.id = id
+        return project.model_dump(by_alias=True)    
     async def find_one_by_id(self, project_id: str):
         result = await self.collection.find_one(
             { "_id": ObjectId(project_id) }
@@ -43,6 +58,36 @@ class ProjectRepository(BaseDataRepository):
         return await self.collection.delete_one(
             { "_id": ObjectId(project_id) }
         )
+    
+    async def find_all_pagination(self, page: int=1, page_size: int=5):
+        total_documents = await self.collection.count_documents({})
+        total_pages = total_documents // page_size
+        if total_documents % page_size > 0:
+            total_pages += 1
+
+        cursor = self.collection.find().skip((page - 1) * page_size).limit(page_size)
+        projects = []
+
+        async for document in cursor:
+            document["_id"] = str(document["_id"])
+            id = document["_id"]
+            project = Project(**document)
+            project.id = id
+            projects.append(project.model_dump(by_alias=True))
+
+        return projects, total_pages
+    
+    async def find_specific_pagination(self,prj_ids:list[str]):
+        cursor = self.collection.find({"project_id": {"$in": prj_ids}})
+        projects = []
+        async for document in cursor:
+            document["_id"] = str(document["_id"])
+            id = document["_id"]
+            project = Project(**document)
+            project.id = id
+            projects.append(project.model_dump(by_alias=True))
+
+        return projects
 
     async def delete_many(self, data):
         pass

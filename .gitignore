@@ -218,3 +218,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Project assets (uploaded files and local databases)
+src/assets/
+qdrant_data/
